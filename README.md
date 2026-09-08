@@ -23,9 +23,9 @@ Related parts, none of them tried:
 | PCI ID | Part | Expectation |
 |---|---|---|
 | `10de:1db4` | Tesla V100-PCIE-16GB (PG503 SKU 201, VBIOS `88.00.4F.00.09`) | ships a **byte-identical FWSECLIC image**, so the chain should apply, but it has none of the restrictions to lift |
-| `10de:20c2` | CMP 170HX (GA100) | different architecture. The fuse block moved to `0x820000`, PLMs are 4-level, and every address in this kit is wrong there |
+| `10de:20c2` | CMP 170HX (GA100) | ⛔ the primitive itself yields nothing there: PreOS is not heavy-secure on GA100, so the same overflow emits at **UCODE_LEVEL 1**, which no GA100 PLM grants while denying level 0. Tested, see §2.2a. Separately, the fuse block moved to `0x820000` and PLMs are 4-level, so every address here is wrong too |
 | `10de:1e09`, `10de:1ebc` | CMP 50HX (TU102 / Turing) | 4-level PLMs, 32 decode traps, SEC2 at a different base. Not applicable as written, though Turing keeps the pre-Ampere fuse array |
-| `10de:16e8` | CMP 90HX | sampled only for the FWSECLIC version check, where it is on the unguarded side. Nothing else tried |
+| `10de:16e8` | CMP 90HX | unguarded at the version check, but PreOS is not heavy-secure there either, so §2.2a applies. Nothing else tried |
 
 If you run this on a second `1df4` and it behaves differently, that is the single most useful thing
 you could report back. `tools/rom_compat.py` and `tools/preflight.py` exist to tell you *how* it
@@ -116,10 +116,40 @@ canary is a compile-time constant: `D[0x1B0] = 0x00006BD1`, with 72 loads and 0 
 the canary with its own known value and the return address with anything, and you do not get a
 crash. You get **`$pc` control at level 3**.
 
-This is NVIDIA's bug, and NVIDIA names it. Across 12 VBIOSes and 4 architectures, later FWSECLIC
-builds add a check at exactly this site staging `NV_PREOS_ERR_INFOROM_BUFFER_OVERFLOW = 0x202A`.
-Every CMP part sampled (100-210, 170HX, 90HX) is on the unguarded side. The boundary is a VBIOS
-branch rather than an architecture: a stock Tesla V100 ships the byte-identical FWSECLIC image.
+This is NVIDIA's bug, and NVIDIA names it. Across 12 VBIOSes and 4 architectures, later builds add
+a check at exactly this site staging `NV_PREOS_ERR_INFOROM_BUFFER_OVERFLOW = 0x202A`. Every CMP
+part sampled (100-210, 170HX, 90HX) is on the unguarded side, and a stock Tesla V100 ships the
+byte-identical FWSECLIC image, so the guard boundary is a VBIOS branch rather than an architecture.
+
+### 2.2a Unguarded is not the same as exploitable
+
+⛔ **Do not read "unguarded on 170HX and 90HX" as "this works there". It does not, and that was
+tested rather than assumed.** The bug ports to Ampere and Ada. **The privilege does not.**
+
+What makes it worth anything on Volta is that PreOS runs in **heavy secure**, so the hijacked
+return emits at level 3. On GA100 the same ucode is not secure at all:
+
+| | GV100 (CMP 100-210) | GA100 (CMP 170HX) | GA102 (90HX), AD102 |
+|---|---|---|---|
+| vulnerable copy present, unbounded | yes | yes | yes |
+| PreOS runs in HS | **yes**, `IMEMSecBase 0x600`, `IMEMSecSize 0x6674` | **no**, `0x0 / 0x0` | no |
+| level at the copy | **3** | `SCTL = 0x00007011`: LSMODE 1, HSMODE 0, **UCODE_LEVEL 1** | n/m |
+| what the chain buys | arbitrary L3 PRI writes | **nothing** | n/m |
+
+**Level 1 is not a privilege tier on GA100.** The dividend would be registers whose PLM write mask
+grants level 1 and denies level 0. Across 155 GA100 hwref files and 4141 PLM write-mask
+definitions, the only nibble that would qualify occurs twice, and both are 3-bit pre-Ampere
+layouts rather than 4-level GA100 PLMs, so the set is empty by construction. Measured on a live
+170HX across 319 distinct PLM rows: **zero** grant level 1 while denying level 0, and 22 rows are
+`0xD` (L0, L2, L3) where level 1 is strictly *worse* than level 0.
+
+Self-promotion is closed too: `SCTL.HSMODE` is read-only, and the chain has no CSB write primitive
+(all 25 `iowr` sites address CSB through r9 and above, outside the r0-r8 any `mpop` in the image
+restores). And as shipped the 170HX overflow cannot even reach the falcon stack: `0x1FC7` bytes of
+flash sit above the directory against `0xF257` needed, short by 7.7 times.
+
+⇒ On Ampere this is a real unbounded copy that yields no privilege. Volta's heavy-secure PreOS is
+the whole reason the same bug is worth something here.
 
 ### 2.3 Turning `$pc` into arbitrary PRI writes
 
