@@ -6,9 +6,9 @@ Everything here has been run end-to-end on exactly one CMP 100-210 (`10de:1df4`,
 document exists to make the second card cheap and the second operator independent — not to claim
 the result generalises. It probably does; that is a hypothesis, and §10 is how you test it.
 
-`HANDOFF-2026-09-06-unlock-runbook.md` is the one-page version for the original bench, where the
-BDFs and VM ids are known. **This document supersedes it for any other card**, because it does not
-assume any of them.
+The original bench had a one-page runbook with its BDFs, VM ids and nvflash index hardcoded. That
+is deliberately not published: it is worthless anywhere else and misleading everywhere else. This
+document assumes none of them.
 
 ---
 
@@ -30,26 +30,40 @@ time.
 | **PCIe Gen3** | one host register write + a retrain | no | link stays at Gen1 | nothing to undo |
 | **memory clock** | a 6-step host sequence, **GPU idle, bounded NDIV, one switch per boot** | no | Xid 62 + deadlocked RM on a repeated switch; out of bounds or under load, silent corruption | device reset (+ memtest to prove it) |
 | **fp64 + tensor** | **a ROM flash** (payload in the InfoROM) | **yes** | card boots but refuses to POST | reflash the baseline |
-| **PCIe x16 (IFR)** | an SPI write to flash sector 0 | **yes** | **card stops enumerating** | **CH341A only** |
+| **PCIe x16 (IFR)** | an SPI write to flash sector 0 | **yes** | **card stops enumerating** | **1.8 V programmer only** |
 
-⛔ **Do not attempt the fourth.** On the reference card the edit worked perfectly and bought
-**nothing** — with both ends advertising x16 and a forced retrain the link still trained x1,
-because the board routes one lane. It is in the kit because it is *proven*, not because it is
-*useful*. §9 has the details and the one condition under which it is worth doing.
+⚠ **The fourth works, and it is half of a two-part job.** The firmware edit is proven — one byte,
+`LnkCap` x1 → x16, card enumerates normally. The other half is physical: this SKU ships with the
+**AC-coupling capacitors for the extra lanes depopulated**, so those lanes present no link partner
+and the link still trains x1. The traces are there, so full width is a soldering job rather than a
+dead end — but the two are only useful together, and this is the one change here that can stop a
+card enumerating. See §9.
 
 ⚠ **The single most expensive mistake in this tree's history** was firing a payload that wrote PRI
 decode-trap registers that devinit had already programmed. That broke the in-band flash path, and
 because the payload re-fires from ROM on every boot it was self-perpetuating. It cost a CH341A
 session. `tools/build_payload.py` and `tools/trap_dump.py` now screen for exactly that, and the
-supplied recipe touches only free slot 20 — but if you improvise a chain, read
-`HANDOFF-2026-09-04-flash-lockout.md` first.
+supplied recipe touches only free slot 20. If you improvise a chain, the four rules that came out
+of that incident are:
+
+1. **Never write a PRI register that is non-zero at fire time.** devinit arms traps 10–19 as
+   silicon workarounds. Free slots on GV100 are **0–9, 13, 20**.
+2. **Keep a load-bearing denylist.** Anything the recovery path depends on is off limits: the
+   decode-trap block `0x122000`–`0x1227FF`, PMGR/ROM (`0xD7D0`, `0xD7D8`, `0xE200`–`0xE210`,
+   `0xE5A0`), `PMC_ENABLE`, and the priv-ring stations. Break one and you lose the ability to undo
+   the change.
+3. **Prove primitives on registers with no function first** — scratch registers, not functional
+   ones.
+4. **Smoke-test the recovery channel immediately** after any fire that touched a functional
+   register, before anything else. One `--protectoff` answers "can I still write flash?" in
+   seconds.
 
 ---
 
 ## 1. What you get, measured
 
 All numbers from the reference card at a locked 1380 MHz SM clock, one boot, same binaries
-(`logs/97`-`107`), numerically validated — DGEMM max abs err 8.882e-15 against a
+numerically validated — DGEMM max abs err 8.882e-15 against a
 `16*N*eps*max|A|*max|B|` bound of 9.095e-13, HGEMM 0 elements over tolerance.
 
 | | stock | unlocked | ratio |
@@ -70,15 +84,15 @@ Under sustained load the card is **power-limited, not compute-limited**: `gpu_bu
 
 * **ECC** — the gate is one VBIOS bit (`bFlag5` bit 0 `SKU_SUPPORTS_ECC`) that RM reads from a
   parsed struct in *host memory*. No register write can reach it, and the byte is inside the
-  legacy image, which RM refuses to POST if modified. `FINDINGS-2026-09-06-ecc-gate-located.md`.
+  legacy image, which RM refuses to POST if modified. See README §5.
 * **NVDEC / NVENC** — devinit floorsweeps them off, and lifting the mask at runtime lands
   perfectly and then kills the GPU 4.5 s later with Xid 79, because devinit skipped the engines'
-  bring-up. `FINDINGS-2026-09-06-video-engines-and-bit-flags.md` §6. **Do not re-attempt.**
+  bring-up. **Do not re-attempt.** See README §5.
 * **NVLink** — fused off (`OPT_NVLINK_DISABLE = 0x3F`), all six links.
 * **A permanent VBIOS fix for any of the above** — RM refuses to POST a card whose legacy image or
   NVIDIA ucode images differ by even one byte (`RmInitAdapter 0x31:0xffff:2780`), demonstrated at
   three separated offsets, 6/6 reproducible, including with sum-neutral inert padding. The card's
-  own firmware is happy; only the driver objects. `FINDINGS-2026-09-06-integrity-check-scope.md`.
+  own firmware is happy; only the driver objects. See README §5.
 
 ---
 
@@ -283,9 +297,9 @@ python3 tools/rom_compat.py baseline.rom
 ```
 
 ⛔⛔ **Never flash another card's image.** The 1 MiB image contains that card's InfoROM: serial
-number, UUID, board part number. `firmware/gv100-UNLOCK4-entire-2026-09-06.rom` is the *reference
-card's* identity and is shipped as a reference artifact, **not** as something to write to your
-card. Build your own from your own dump.
+number, UUID and board part number. That is also why no reference image is published in this
+repository — publishing one publishes a specific card's identity, and it would be useless to you
+anyway. **Build your own payload from your own card's dump.**
 
 `rom_compat.py` derives, rather than assumes: the InfoROM directory address (reached by walking a
 per-card object chain, so it *is* different on your card), the FWSECLIC build (every gadget VA and
@@ -436,33 +450,51 @@ a phantom.
 
 ---
 
-## 9. The x16 firmware edit — why it is here and why you should not do it
+## 9. The x16 firmware edit — proven, and gated by your board
 
 The x1 link is not in the VBIOS. It is in the **IFR**, at physical flash `0x214`: a record that
 read-modify-writes `XP_PL_LINK_CONFIG_0` to force `LINK_SPECIFIER` to lanes `00_00`. Retargeting it
 at the read-only `XP_PL_LINK_PRESENT` neutralises it — **one byte, `0x42 → 0x02`, a single bit
-1→0**, so no erase and no partial state. Delivered over the L3 SPI stamp (`tools/spi_flash_l3.py`),
-because nvflash's PMU flash service refuses every write below physical `0x00EE00`.
+1→0**, so no erase and no partial state, which is what makes touching sector 0 survivable at all.
+Delivered over the L3 SPI stamp (`tools/spi_flash_l3.py`), because nvflash's PMU flash service
+refuses every write below physical `0x00EE00`.
 
-It works. `LINK_SPECIFIER 0x01 → 0x10`, `LnkCap` width `x1 → x16`, card enumerates normally.
+**It works.** Measured after the write and an SBR:
 
-⛔ **And it changed nothing.** With both ends advertising x16 and a forced retrain, the link still
-trained **x1**: PCIe sets width by per-lane receiver detection, and only one lane has a partner.
-Control on the same switch: sibling 170HX cards advertise x16 and train x4, so the switch and
-backplane are not the limit. **The board routes one lane.**
+```
+LINK_SPECIFIER               0x01 -> 0x10      (lanes 00_00 -> 15_00)
+XVE_LINK_CAPABILITIES width     1 -> 16
+lspci  LnkCap                  x1 -> x16       card enumerates normally
+```
 
-⚠ Also: the IFR programs `ROM_ADDR_OFFSET` and the PCIe config, so a bad edit can stop the card
-enumerating with **no in-band path back** — nvflash cannot rewrite sector 0 without the L3 stamp,
-and the L3 stamp needs the card to enumerate.
+**What it bought on the reference bench: nothing yet** — because width has a *second* gate, and it
+is physical. On this SKU the series **AC-coupling capacitors for the additional lanes are
+depopulated**. PCIe negotiates width by per-lane receiver detection; a lane with no coupling
+capacitor has no AC path, so no partner is detected and the link trains **x1** regardless of what
+either end advertises. With both ends at x16 and a forced retrain, that is exactly what happened.
 
-⛔ And if you do need the programmer: **1.8 V** — see §2. A 3.3 V CH341A on this W25Q80EW does not
-recover the card, it finishes it.
+★ **The traces are there; the caps are not.** Full width is therefore a **rework**, not an
+impossibility: fit capacitors matching the value of the populated ones on the working lane. This
+kit removes the firmware gate and the soldering removes the other. ⚠ *That rework has not been
+performed here — it is reported from board inspection, not verified by measurement, so treat the
+end-to-end result as untested.*
 
-**Do it only if** `preflight.py` shows `LANE_PRESENT = 0xFFFF` **and** you have independent
-evidence that your board routes more than one lane (a sibling card training wider in the same slot
-is the cheap test) **and** a CH341A is physically attached. Otherwise skip it; you lose nothing.
+**Before you commit:**
 
----
+* ⛔ **`XP_PL_LANE_PRESENT` is not predictive.** It read `0xFFFF` — 16 lanes present at the PHY —
+  on the card that trained x1. The PHY is fine; the coupling path is not.
+* ★ **Inspect the board.** Look for empty pad pairs on the lane traces near the edge connector,
+  alongside the populated pair on the lane that works. That is the depopulation, and it is what
+  you would be fitting.
+* ⚠ Doing the firmware edit **without** the rework gains nothing but still carries the full risk
+  below. Doing the rework without the firmware edit also gains nothing, because the IFR record
+  keeps forcing `LINK_SPECIFIER` to x1. **They are only useful together.**
+
+⛔⛔ **The risk is real and asymmetric.** The IFR programs `ROM_ADDR_OFFSET` and the PCIe config, so
+a bad edit can stop the card enumerating — and nvflash cannot rewrite sector 0 without the L3
+stamp, which needs the card to enumerate. There is no in-band way back. **Attach a 1.8 V-capable
+programmer before the write** (see §2 — a stock 3.3 V CH341A destroys this chip), and remember the
+edit and the L3 chain are coupled: the SPI stamp needs trap 20, which needs the payload resident.
 
 ## 10. If your card is not the reference card
 
@@ -551,5 +583,4 @@ claim.
 | `tools/nvflash_pty.py` | drive nvflash under a real tty (it reads `/dev/tty`) | yes |
 | `tools/trap_dump.py` | the 22 decode traps vs a stock reference | yes, read-only |
 | `tools/bench/*.cu` | pipes, sweep, memtest, numerical validation | yes |
-| `firmware/gv100-RECOVERY-entire-2026-09-02.rom` | the reference card's baseline — **a reference, not something to flash** | — |
-| `firmware/gv100-UNLOCK4-entire-2026-09-06.rom` | the reference card's payload, for hash comparison | — |
+| `tools/fuc_frames.py`, `tools/falcon_cfg.py`, `tools/falcon_disasm.py` | re-derive the chain geometry if your FWSECLIC build differs | no |

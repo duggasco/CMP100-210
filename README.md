@@ -205,6 +205,41 @@ it ignores the encoding change: Gen1 is 8b/10b, Gen3 is 128b/130b, so the true c
 > ⚠ `nvidia-smi` reports `pcie.link.gen.current = 1` on a physically-Gen3 link, permanently — it
 > reads the re-clamped capability. Trust lspci `LnkSta`, sysfs `current_link_speed`, or throughput.
 
+### PCIe width — the firmware limit comes off; the payoff is your board's
+
+The x1 link is **not** in the VBIOS. It is in the **IFR**, at physical flash `0x214`: a record that
+read-modify-writes `XP_PL_LINK_CONFIG_0` to force `LINK_SPECIFIER` to lanes `00_00`. Retargeting
+that record at the read-only `XP_PL_LINK_PRESENT` neutralises it — **one byte, `0x42 → 0x02`, a
+single bit 1→0**, so no erase and no partial state. Delivered over the L3 SPI stamp, because
+nvflash's PMU flash service refuses every write below physical `0x00EE00`.
+
+**It works, and it was measured:**
+
+```
+LINK_SPECIFIER               0x01 -> 0x10      (lanes 00_00 -> 15_00)
+XVE_LINK_CAPABILITIES width     1 -> 16
+lspci  LnkCap                  x1 -> x16       card enumerates normally
+```
+
+**Width has two gates, and this removes the firmware one.** The second is physical: on this SKU
+the series **AC-coupling capacitors for the additional lanes are depopulated** — empty pads. PCIe
+negotiates width by per-lane receiver detection, and a lane with no coupling cap has no AC path,
+so no partner is detected and the link trains x1 no matter what either end advertises. That is
+what happened on the reference bench.
+
+★ **The traces are present; the capacitors are not.** That makes full width a **soldering job**,
+not a dead end — fit caps matching the value of the populated ones on the working lane. This kit
+removes the firmware gate; the rework removes the other. *(The rework has not been performed here,
+so it is reported, not verified.)*
+
+> ⛔ `XP_PL_LANE_PRESENT` is **not** predictive — it read `0xFFFF` (16 lanes present at the PHY) on
+> the card that trained x1. Inspect the board instead: look for empty pad pairs on the lane traces
+> near the edge connector, next to the populated ones on the working lane.
+
+⛔ This is the **highest-risk** change in the kit and the only one that can stop a card
+enumerating: it writes flash sector 0, the IFR, which programs `ROM_ADDR_OFFSET` and the PCIe
+config. There is no in-band way back. Attach a **1.8 V** programmer first.
+
 ### Whole card, one boot
 
 FP64 **6.85** / tensor **101.8** / FP32 **12.7 TFLOP/s**, read **890 GB/s**, H2D **0.79 GB/s**,
@@ -229,9 +264,8 @@ Recorded because the negative results cost as much as the positive ones:
   parsed struct **in host memory**. No register write, PLM, trap stamp or fuse override can reach
   it — and the byte is inside the legacy image, behind the wall above.
 * **Video engines.** See §3. Runtime lift = Xid 79. Do not re-attempt.
-* **NVLink** — fused off, all six links. **PCIe x16** — the firmware limit is removable (it lives
-  in the IFR, one byte) and it buys nothing: with both ends advertising x16 and a forced retrain
-  the link still trains x1, because the board routes one lane.
+* **NVLink** — fused off, all six links, `OPT_NVLINK_DISABLE = 0x3F`. Silicon intact, but there is
+  no firmware path around a burned fuse.
 * **No LHR-style flag.** Volta *has* one — `bFlag6` bit 7 `REDUCE_MINING_PERF` — and this SKU's
   `bFlag6` is byte-identical to a stock V100's. Don't go looking for it.
 

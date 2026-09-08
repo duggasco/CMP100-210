@@ -173,7 +173,11 @@ def main():
     o["derived"] = {
         "arch": "0x%03X" % arch, "is_volta": arch == ARCH_VOLTA,
         "devid": o["pci"]["device"], "posted": posted,
-        "pmu_healthy": r["PMU_CPUCTL"] == 0x20,
+        # ⚠ 0x20 is the value on a DRIVERLESS card, once FWSECLIC has finished.  Once RM owns
+        # the PMU other bits legitimately set (0x60 = STOPPED|ALIAS_EN measured on a healthy,
+        # fully-benchmarked card).  Treating "!= 0x20" as unhealthy is a false positive that
+        # would stop a tester on a working card.  Only HALT, or an all-zero register, is bad.
+        "pmu_healthy": bool(r["PMU_CPUCTL"]) and not (r["PMU_CPUCTL"] & 0x10),
         "chain_fired": chain_fired, "trap20_armed": trap_armed,
         "fecs_plm_open": r["FECS_PLM"] == 0xFF,
         "cya_clamped": bool(r["XVE_PRIV_MISC_1"] & 0xC0006000),
@@ -191,8 +195,9 @@ def main():
                      ["PMC_BOOT_0 arch field is %s, not 0x140 (Volta) -- this kit's every "
                       "register address is wrong for this die" % d["arch"]]) +
                     ([] if d["pmu_healthy"] else
-                     ["PMU CPUCTL = 0x%08X, not 0x20.  0x10 = HALT, 0x00 = the post-Xid-79 "
-                      "signature.  SBR (twice if needed) and re-run before any flash."
+                     ["PMU CPUCTL = 0x%08X.  Bit 4 (0x10) is HALT; 0x00000000 is the "
+                      "post-Xid-79 signature.  SBR -- twice if needed, the first reset after an "
+                      "Xid 79 can still read 0x00 -- and re-run before any flash."
                       % r["PMU_CPUCTL"]]),
     }
     v["memclk"] = {
@@ -236,16 +241,42 @@ def main():
         "note": "OVERRIDE 0x409664 = 0x%08X, READOUT 0x409660 = 0x%08X (bits 20/21/22 "
                 "DP/IMLA/FMLA; 0 = FULL_SPEED)" % (r["FECS_OVERRIDE"], r["FECS_READOUT"]),
     }
+    # ★ The firmware limit is REAL and PROVEN REMOVABLE: one byte in the IFR record at physical
+    # flash 0x214 retargets the RMW that forces LINK_SPECIFIER to x1.  Measured on the reference
+    # card: LINK_SPECIFIER 0x01 -> 0x10, MAX_LINK_WIDTH 1 -> 16, lspci LnkCap x1 -> x16, card
+    # enumerates normally.  What is NOT guaranteed is the payoff: the link only trains as wide as
+    # the board routes lanes, and on the reference bench only one lane had a partner.  That is a
+    # property of that slot/riser, not of the technique -- so this is a real capability with a
+    # hardware-dependent return, NOT a dead end.  Report the state; let the operator judge.
+    fw_limited = d["link_specifier"] == 0x01 and d["lnkcap_width"] == 1
+    x16_blockers = []
+    if not fw_limited:
+        x16_blockers.append("this card is not firmware-limited to x1 (LINK_SPECIFIER 0x%02X, "
+                            "LnkCap width %d) -- nothing for this edit to remove"
+                            % (d["link_specifier"], d["lnkcap_width"]))
     v["pcie_x16_fw"] = {
-        "go": False,
-        "blockers": ["⛔ NOT RECOMMENDED.  On the reference card the firmware edit worked and "
-                     "bought NOTHING: with both ends advertising x16 and a forced retrain the "
-                     "link still trained x1, because the board routes one lane.  It is the only "
-                     "edit in this kit that can stop a card enumerating, and the recovery is a "
-                     "CH341A.  Do it only if LANE_PRESENT says otherwise AND a programmer is "
-                     "physically attached."],
+        "go": fw_limited,
+        "blockers": x16_blockers,
         "note": "LANE_PRESENT 0x08C004 = 0x%08X, LINK_SPECIFIER = 0x%02X (0x01 = x1, 0x10 = x16), "
-                "LnkCap width %d, trained %s"
+                "LnkCap width %d, currently trained %s.\n"
+                "⚠ The edit itself is proven (one byte, LnkCap x1 -> x16). It is ONE OF TWO "
+                "gates:\n"
+                "  the second is physical -- the series AC-coupling capacitors for the extra "
+                "lanes are\n"
+                "  DEPOPULATED on this SKU, so those lanes have no DC path and no link partner "
+                "is detected.\n"
+                "  ★ The traces are there; the caps are not. Fitting them is a soldering job, "
+                "not a dead end.\n"
+                "  ⛔ LANE_PRESENT is NOT predictive -- it read 0xFFFF (16 lanes at the PHY) on "
+                "a card that\n"
+                "  trained x1. Inspect the board: look for empty pad pairs on the lane traces "
+                "by the edge\n"
+                "  connector, alongside the populated ones on the working lane.\n"
+                "⛔ Highest-risk edit in the kit: it writes flash sector 0 (the IFR), which "
+                "programs\n"
+                "  ROM_ADDR_OFFSET and the PCIe config. A bad one stops the card enumerating and "
+                "the only\n"
+                "  way back is a 1.8 V programmer. Attach one first."
                 % (r["XP_PL_LANE_PRESENT"], d["link_specifier"], d["lnkcap_width"],
                    o["pci"]["current_link_width"]),
     }
@@ -268,7 +299,8 @@ def main():
     p("                  %s" % " ".join("%s%s" % ("+" if r["PMC_ENABLE"] >> i & 1 else "-", n)
                                         for i, n in PMC_BITS))
     p("  PMU CPUCTL      0x%08X   %s" % (r["PMU_CPUCTL"],
-      "healthy" if d["pmu_healthy"] else "⛔ 0x10 = HALT / 0x00 = post-Xid-79; SBR before flashing"))
+      ("healthy" + ("" if r["PMU_CPUCTL"] == 0x20 else "  (0x20 driverless; RM sets more bits)"))
+      if d["pmu_healthy"] else "⛔ HALT (bit 4) / 0x00 post-Xid-79; SBR before flashing"))
     p("  postcodes       SCRATCH(5) 0x%08X  SCRATCH(6) 0x%08X" % (r["SCRATCH_5"], r["SCRATCH_6"]))
     p("  link            trained %s / %s lane(s), LnkCap speed %d width %d"
       % (o["pci"]["current_link_speed"], o["pci"]["current_link_width"],
