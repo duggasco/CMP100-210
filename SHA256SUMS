@@ -1,6 +1,6 @@
 1c563312f96d6a885ca4be43fbc15d1a7d98fba76e42792c25c94db161521819  ./.gitignore
 ff68159fd4a9089dd94597a0ca3624bf97c538d1196029723108364d197cca07  ./PORTING-2026-09-08-other-cards.md
-d967affbfde80eef83262c71fc26504eb4a7ec51dbbf5d626d540474d5081972  ./README.md
+ddd4d3f8320d96dd0cf97cc5bd8e9c342fed3c0d5656156c0e9a8a7b6e739628  ./README.md
 b29a2d4dff8893f98c6fb8797aa3b2c7f793c137895f3dd4088bb84d4d4d19f4  ./docs/evidence/nvidia-smi-clocks-unlocked.txt
 f56aad7d8b410d946151d6aa1233a408425c7e26384f15274d4035831bb526ae  ./docs/evidence/nvidia-smi-unlocked.txt
 c9e93f3602ddc21a0462db0f9d47898d2cc9107542e0abcb609f05dfa1cb83e7  ./docs/evidence/throttle-live-toggle-ab.txt
