@@ -8,6 +8,25 @@ Validated end-to-end on hardware. **FP64 15.5×, tensor cores 14.4×, PCIe 3.95�
 
 ![nvidia-smi on the unlocked card](docs/img/01-nvidia-smi.png)
 
+## Credits
+
+This stands on other people's work. Three debts in particular:
+
+* **BlackSun** — for the discovery that NVIDIA's **PRI decode traps** can be turned into a
+  privilege-escalation primitive, on the CMP 170HX. A trap armed with `ACTION.SET_PRIV_LEVEL` and
+  `DATA1 = 0xC0000000` stamps a matching host write to level 3. Everything in §2.4 below is that
+  idea ported to Volta — different trap block, different arming path, same insight.
+* **zorg33** — for the **SPI write procedure** on the 170HX: driving `SPI_CTRL` / `SPI_DATA_ARRAY`
+  directly to issue JEDEC frames — `WREN`, page program, `RDSR` polling — and bypassing nvflash's
+  flash service entirely. That is what reaches the region nvflash refuses (everything below
+  physical `0x00EE00`, the IFR included), and it is how the width edit is delivered. Comparing that
+  write-up against Volta is also what showed the Ampere pad-mux wall (`PAD_SHARE`, `SPI_ARBITER`)
+  simply does not exist here.
+* **NVIDIA** — for the primitive. The unbounded copy in §2.2 is their code, and the error name it
+  eventually got in later firmware — `NV_PREOS_ERR_INFOROM_BUFFER_OVERFLOW` — is theirs too.
+
+Any errors in the porting, the measurements or the conclusions are mine, not theirs.
+
 ---
 
 ## 1. What is actually restricted

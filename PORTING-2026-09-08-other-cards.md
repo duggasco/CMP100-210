@@ -10,6 +10,10 @@ The original bench had a one-page runbook with its BDFs, VM ids and nvflash inde
 is deliberately not published: it is worthless anywhere else and misleading everywhere else. This
 document assumes none of them.
 
+**Credits.** The decode-trap privilege stamp this kit depends on was discovered by **BlackSun** on
+the CMP 170HX; the SPI write procedure that reaches the region nvflash refuses is **zorg33's**,
+also from the 170HX; and the primitive itself is NVIDIA's own unbounded copy. See the README.
+
 ---
 
 ## 0. The risk ladder — read this before anything else
