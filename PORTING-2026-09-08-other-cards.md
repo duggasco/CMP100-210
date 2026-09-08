@@ -344,6 +344,18 @@ python3 tools/nvflash_pty.py --log flash.txt -- ./nvflash-kit --index=N --inforo
 ./nvflash-kit --index=N --save readback.rom --entire && sha256sum readback.rom payload.rom
 ```
 
+⛔⛔ **`--inforomnopreserve` is not optional, in either direction.** nvflash *preserves* the InfoROM
+by default — it merges the existing one instead of writing the one in your image — and the chain
+lives inside an InfoROM object. Without the flag a flash can leave that object's declared **size**
+from one image on top of the **payload** from another. The firmware still runs the oversized copy
+the exploit depends on, but over the wrong bytes: the PMU halts on every boot (`CPUCTL 0x10`, VBIOS
+post-code scratch `0x40006000`), the GPU never initialises, and **re-flashing does not fix it**
+because every later flash preserves the same broken header. It is also unrepairable in place — the
+size field needs bits *set*, which a page program cannot do, and the SPI erase path needs the very
+privilege the broken chain was meant to arm. One flash of your baseline **with** the flag restores
+it byte-exact. Do not drop the flag when improvising a command by hand.
+
+
 ⚠⚠ **nvflash reads confirmations from `/dev/tty`, not stdin.** `< /dev/null`, `printf 'y' |`,
 bare `script`, and `ssh -tt` with the answer piped up front **all fail** — measured, all four; the
 first is the long-standing "nvflash refuses to write the InfoROM" myth. `tools/nvflash_pty.py`
@@ -442,6 +454,10 @@ python3 tools/nvflash_pty.py --log restore.txt -- ./nvflash-kit --index=N --info
 ./nvflash-kit --index=N --save check.rom --entire && sha256sum check.rom     # == baseline.sha256
 python3 tools/trap_dump.py $BDF        # want "all 22 traps match the pre-exploit stock state"
 ```
+
+⛔ The `--inforomnopreserve` on the restore line is load-bearing — see §6.4. A rollback
+without it can leave the card unbootable in a way that further flashes will not undo.
+
 
 ⚠ `trap_dump.py`'s stock table is the *reference card's* devinit-programmed state. On another card
 compare against a dump you took **before** flashing, not against the shipped table. Take one.

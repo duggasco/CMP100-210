@@ -336,7 +336,7 @@ python3 tools/preflight.py <bdf>             # on-card GO/NO-GO, strictly read-o
 python3 tools/rom_compat.py <your-dump.rom>  # offline GO/NO-GO on your card's own ROM
 ```
 
-### Two things that will cost you a card
+### Three things that will cost you a card
 
 ⛔ **The flash chip is 1.8 V.** It is a Winbond W25Q80EW, `Vcc 1.65 to 1.95 V`, and a stock CH341A
 drives 3.3 V and destroys it. Use a 1.8 V-capable programmer and check the rail with a meter,
@@ -345,6 +345,19 @@ because several boards sold as "1.8 V" only shift the data lines and still feed 
 ⛔ **One memory-clock switch per boot.** The `--ndiv 60` "no-op control" is itself a switch. Running
 it and then the real switch produced Xid 62 and a deadlocked RM, and recovery was a device reset.
 `tools/hbm_mclk_switch.py` now refuses the second one and names the reset you need.
+
+⛔ **Never flash a payload image, or roll one back, without `--inforomnopreserve`.** nvflash
+*preserves* the InfoROM by default: it merges the existing one rather than writing the one in your
+image. The chain lives inside an InfoROM object, so a flash without that flag can leave the object's
+declared **size** from one image sitting on top of the **payload** from another. The firmware then
+still performs the oversized copy the exploit depends on, but over the wrong bytes, and the PMU
+halts on every boot — `CPUCTL` reads `0x10` and the VBIOS post-code scratch reads `0x40006000`
+instead of its usual value. The card still enumerates and nvflash still reads and writes it, but the
+GPU will not initialise and **re-flashing does not fix it**, because every subsequent flash
+preserves the same broken header. Nor can you repair it in place: the size field needs bits *set*,
+which a page program cannot do, and the SPI erase path needs the very privilege the broken chain was
+supposed to arm. The fix is one flash of your baseline image **with** `--inforomnopreserve`. The
+commands in the porting guide already carry the flag — do not drop it when improvising.
 
 ### No firmware images are published here
 
