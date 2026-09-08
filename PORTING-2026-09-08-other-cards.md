@@ -490,6 +490,35 @@ end-to-end result as untested.*
   below. Doing the rework without the firmware edit also gains nothing, because the IFR record
   keeps forcing `LINK_SPECIFIER` to x1. **They are only useful together.**
 
+**The procedure, in escalation order — do not skip a rung.** Every step below the last is
+read-only at the flash, so each one tells you something before anything is committed:
+
+```bash
+# 1. is the SPI engine even reachable through the L3 stamp?  read-only.
+python3 tools/spi_rdid_l3.py <bdf>            # want JEDEC  EF 60 14  (Winbond W25Q80EW)
+
+# 2. is the chip write-protected?  read-only.
+python3 tools/spi_status_l3.py <bdf>          # want SR1 = SR2 = 0x00 -> BP2:BP0=000, no
+                                              # block protection, TB/SEC/CMP/SRL all clear
+
+# 3. dry run: all six interlocks, no write.  This is the DEFAULT -- it refuses to program
+#    unless RDID matches, the target byte currently reads 0x42, and WREN actually sets WEL.
+python3 tools/spi_write_ifr_l3.py <bdf>
+
+# 4. the write itself: ONE byte, 0x42 -> 0x02, a single bit 1->0, then a readback.
+python3 tools/spi_write_ifr_l3.py <bdf> --program
+```
+
+★ **Use `spi_write_ifr_l3.py`, not `spi_flash_l3.py`, for this.** The purpose-built tool programs
+exactly one byte at exactly one address, verifies the preimage first and the postimage after, and
+**contains no erase opcode anywhere in the file** — `0x20`/`0x52`/`0xD8`/`0xC7`/`0x60` do not
+appear. `spi_flash_l3.py` is the general read/erase/program tool and is shipped for everything
+else; pointing it at sector 0 is how you lose a card, because an interrupted erase leaves the IFR
+blank and there is no in-band way back.
+
+⚠ All four need trap 20 armed, which means the payload resident and an SBR since — the SPI block's
+PLM (`0x0D7D0 = 0xCF`) is write-L2, so these writes only land stamped.
+
 ⛔⛔ **The risk is real and asymmetric.** The IFR programs `ROM_ADDR_OFFSET` and the PCIe config, so
 a bad edit can stop the card enumerating — and nvflash cannot rewrite sector 0 without the L3
 stamp, which needs the card to enumerate. There is no in-band way back. **Attach a 1.8 V-capable
@@ -579,7 +608,10 @@ claim.
 | `tools/hbm_mclk_switch.py` | the 6-step memory clock switch | yes |
 | `tools/fecs_unlock_attempt.py` | the fp64/tensor throttle write, with readback | yes |
 | `tools/trap20_stamp.py` | re-aim trap 20; stamp an arbitrary host write to L3 | yes |
-| `tools/spi_flash_l3.py` | read/erase/program flash over the L3 stamp | yes, writes |
+| `tools/spi_rdid_l3.py` | is the SPI engine reachable through the stamp? read-only | yes, read-only |
+| `tools/spi_status_l3.py` | chip block-protection state (SR1/SR2), read-only | yes, read-only |
+| `tools/spi_write_ifr_l3.py` | ★ the x16 edit: one byte, six interlocks, **no erase opcode** | yes, writes 1 byte |
+| `tools/spi_flash_l3.py` | general read/erase/program over the L3 stamp — everything else | yes, writes |
 | `tools/nvflash_pty.py` | drive nvflash under a real tty (it reads `/dev/tty`) | yes |
 | `tools/trap_dump.py` | the 22 decode traps vs a stock reference | yes, read-only |
 | `tools/bench/*.cu` | pipes, sweep, memtest, numerical validation | yes |

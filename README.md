@@ -236,6 +236,12 @@ so it is reported, not verified.)*
 > the card that trained x1. Inspect the board instead: look for empty pad pairs on the lane traces
 > near the edge connector, next to the populated ones on the working lane.
 
+The kit ships the write path as an escalation ladder — `spi_rdid_l3.py` (is the engine reachable?)
+and `spi_status_l3.py` (is the chip protected?) are read-only, then `spi_write_ifr_l3.py` does the
+one byte behind six interlocks and **contains no erase opcode anywhere in the file**.
+`spi_flash_l3.py` is the general read/erase/program tool for everything else — pointing *that* at
+sector 0 is how a card is lost, because an interrupted erase leaves the IFR blank.
+
 ⛔ This is the **highest-risk** change in the kit and the only one that can stop a card
 enumerating: it writes flash sector 0, the IFR, which programs `ROM_ADDR_OFFSET` and the PCIe
 config. There is no in-band way back. Attach a **1.8 V** programmer first.
