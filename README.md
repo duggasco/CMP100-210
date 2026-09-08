@@ -365,16 +365,12 @@ porting guide covers how to find out, and section 11 covers what to send back.
 
 ## 8. Licence
 
-[Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution and the trademark statement.
+[Apache License 2.0](LICENSE), with attribution in [NOTICE](NOTICE).
 
-Apache-2.0 rather than something shorter for two reasons that apply specifically here. Section 3
-is an express patent grant, which is worth having when what is being published is a technique.
-Section 6 grants no trademark rights, which makes formal what the prose already says: NVIDIA, CMP,
-Tesla, Volta and CUDA are NVIDIA Corporation's marks, used here only to identify the hardware this
-applies to, and **this project is not affiliated with, endorsed by or connected to NVIDIA**.
+NVIDIA, CMP, Tesla, Volta and CUDA are trademarks of NVIDIA Corporation, used here only to identify
+the hardware. This project is not affiliated with or endorsed by NVIDIA, and no NVIDIA firmware,
+firmware image or vendor utility is redistributed. The tools patch and drive a copy of nvflash that
+you supply.
 
-No NVIDIA firmware, firmware image or vendor utility is redistributed here. The tools patch and
-drive a copy of nvflash that you supply.
-
-Sections 7 and 8 disclaim warranty and liability, and they are meant literally. This modifies
-firmware and hardware configuration on devices you own, and it can render one unusable.
+No warranty. This modifies firmware and hardware configuration on devices you own, and it can
+render one unusable.
