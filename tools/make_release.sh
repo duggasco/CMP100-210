@@ -27,6 +27,7 @@ cd "$ROOT" || exit 1
 DOCS="
 PORTING-2026-09-08-other-cards.md
 LICENSE
+LICENSE-DOCS
 NOTICE
 "
 TOOLS="
@@ -94,6 +95,18 @@ echo "  clean -- no host IPs, ssh targets or BMC credentials in the staged files
 ( cd "$OUT" && find . -type f ! -name SHA256SUMS -print0 | sort -z \
     | xargs -0 sha256sum > SHA256SUMS )
 n=$(wc -l < "$OUT/SHA256SUMS")
+# ⚠ The MANIFEST must describe what was ACTUALLY packaged.  It used to assert that reference
+# firmware images were present regardless, which is false for a NO_FIRMWARE build.
+if [ -n "$FIRMWARE" ]; then
+  FW_PARA='⛔ **The firmware images are reference artifacts for hash comparison, not something to
+flash.** Each 1 MiB image contains the reference card'"'"'s InfoROM: serial number, UUID and board
+part number. Build your own payload from your own card'"'"'s dump.'
+else
+  FW_PARA='No firmware images are included: each 1 MiB image carries its card'"'"'s InfoROM (serial
+number, UUID, board part number), and a payload must be built from your own card'"'"'s dump anyway.
+Use `tools/rom_compat.py` then `tools/build_payload.py`.'
+fi
+
 cat > "$OUT/MANIFEST.md" <<MSG
 # CMP 100-210 unlock kit — $DATE
 
@@ -104,10 +117,7 @@ $n files. Verify with:
 
     sha256sum -c SHA256SUMS
 
-⛔ **The firmware images are reference artifacts for hash comparison, not something to flash.**
-Each 1 MiB image contains the reference card's InfoROM: serial number, UUID and board part
-number. Build your own payload from your own card's dump — \`tools/rom_compat.py\` then
-\`tools/build_payload.py\`, both documented in the porting doc.
+$FW_PARA
 
 ⚠ **Build the benchmarks first:** \`bash tools/bench/build.sh\`. The five \`.cu\` files are the
 one part of this kit that has not been through \`nvcc\` in its current form — the authoring host

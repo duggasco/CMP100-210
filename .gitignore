@@ -9,3 +9,4 @@ readback*.rom
 report-*.json
 report-*.txt
 flash*.txt
+MANIFEST.md

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- Copyright 2026 duggasco -->
 # CMP 100-210 unlock
 
 Lifting the firmware restrictions on an NVIDIA **CMP 100-210** (GV100 / Volta, `10de:1df4`), the
@@ -365,7 +367,16 @@ porting guide covers how to find out, and section 11 covers what to send back.
 
 ## 8. Licence
 
-[Apache License 2.0](LICENSE), with attribution in [NOTICE](NOTICE).
+| what | licence |
+|---|---|
+| code: `tools/` | [Apache License 2.0](LICENSE) |
+| documentation: this README, the porting guide, `docs/` | [CC BY 4.0](LICENSE-DOCS) |
+
+Attribution notices are in [NOTICE](NOTICE). To reuse the write-up, credit:
+
+> CMP 100-210 unlock, duggasco, https://github.com/duggasco/CMP100-210, CC BY 4.0
+
+and indicate whether you changed anything.
 
 NVIDIA, CMP, Tesla, Volta and CUDA are trademarks of NVIDIA Corporation, used here only to identify
 the hardware. This project is not affiliated with or endorsed by NVIDIA, and no NVIDIA firmware,

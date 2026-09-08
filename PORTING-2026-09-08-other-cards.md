@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- Copyright 2026 duggasco -->
 # Porting the CMP 100-210 unlock to another card, and to another operator
 
 **Audience: someone who is not me, holding a card that is not the one this tree was written on.**
@@ -584,3 +586,9 @@ claim.
 | `tools/trap_dump.py` | the 22 decode traps vs a stock reference | yes, read-only |
 | `tools/bench/*.cu` | pipes, sweep, memtest, numerical validation | yes |
 | `tools/fuc_frames.py`, `tools/falcon_cfg.py`, `tools/falcon_disasm.py` | re-derive the chain geometry if your FWSECLIC build differs | no |
+
+---
+
+Documentation licensed [CC BY 4.0](LICENSE-DOCS); the tools it describes are
+[Apache-2.0](LICENSE). Credit as: CMP 100-210 unlock, duggasco,
+https://github.com/duggasco/CMP100-210, CC BY 4.0.
