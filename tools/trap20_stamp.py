@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright 2026 duggasco
 """Drive the pass-54 L3 opener: re-aim trap 20 and stamp host-L0 writes to LEVEL_3.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright 2026 duggasco
 """Clear the CMP 100-210's CYA speed clamp, then retrain the link from the upstream port.
 

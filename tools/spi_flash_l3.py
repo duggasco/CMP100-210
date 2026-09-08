@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright 2026 duggasco
 """General SPI flash access on a GV100, through the pass-54 trap-20 L3 stamp.
 

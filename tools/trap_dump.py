@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright 2026 duggasco
 """Dump the 22 GV100 PRI decode traps and diff against the pre-exploit stock state.
 

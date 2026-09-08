@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright 2026 duggasco
 # make_release.sh -- assemble the distributable unlock kit, and REFUSE if it leaks the bench.
 #

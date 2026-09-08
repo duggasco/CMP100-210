@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // Copyright 2026 duggasco
 // gv100_validate.cu -- numerical validation of the lifted fp64 / tensor-core throttle.
 //

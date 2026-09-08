@@ -1,24 +1,35 @@
 CMP 100-210 unlock kit
 Copyright 2026 duggasco
 
-This product includes software developed for reverse-engineering and
-reconfiguring an NVIDIA CMP 100-210 (GV100 / Volta) graphics processor.
+Required Notice: Copyright 2026 duggasco (https://github.com/duggasco/CMP100-210)
 
-This work is licensed in two parts:
+------------------------------------------------------------------------------
+Licensing
+------------------------------------------------------------------------------
 
-  * Code (the tools/ directory) is licensed under the Apache License,
-    Version 2.0. You may obtain a copy in the LICENSE file distributed with
-    this work, or at http://www.apache.org/licenses/LICENSE-2.0
+This work is licensed in two parts, and neither permits commercial use:
+
+  * Code (the tools/ directory) is licensed under the PolyForm Noncommercial
+    License 1.0.0. See the LICENSE file, or
+    https://polyformproject.org/licenses/noncommercial/1.0.0
+
+    Any noncommercial purpose is permitted. That expressly includes personal
+    research, experiment and testing, hobby projects, and use by educational
+    institutions, public research organizations, charities and government
+    institutions, regardless of their funding.
 
   * Documentation (README.md, PORTING-2026-09-08-other-cards.md and the docs/
     directory, including the measurement evidence and screen captures) is
-    licensed under the Creative Commons Attribution 4.0 International
-    License. You may obtain a copy in the LICENSE-DOCS file, or at
-    https://creativecommons.org/licenses/by/4.0/
+    licensed under the Creative Commons Attribution-NonCommercial 4.0
+    International License. See LICENSE-DOCS, or
+    https://creativecommons.org/licenses/by-nc/4.0/
 
     Attribute as: CMP 100-210 unlock, duggasco,
-    https://github.com/duggasco/CMP100-210, CC BY 4.0 -- and indicate
+    https://github.com/duggasco/CMP100-210, CC BY-NC 4.0 -- and indicate
     whether you changed anything.
+
+Commercial use of either part requires separate permission from the copyright
+holder.
 
 ------------------------------------------------------------------------------
 Prior work this is built on
@@ -39,13 +50,16 @@ The techniques implemented here were not all originated by this project:
     is the identifier it was later given in their firmware,
     NV_PREOS_ERR_INFOROM_BUFFER_OVERFLOW.
 
+The noncommercial terms above are this project's own and are not asserted on
+behalf of any of the above.
+
 ------------------------------------------------------------------------------
 Trademarks and affiliation
 ------------------------------------------------------------------------------
 
 NVIDIA, CMP, Tesla, Volta and CUDA are trademarks or registered trademarks of
 NVIDIA Corporation. They are used here only to identify the hardware this work
-applies to. Per section 6 of the License, no trademark rights are granted.
+applies to. No trademark rights are granted.
 
 This project is not affiliated with, endorsed by, sponsored by or in any way
 connected to NVIDIA Corporation.
@@ -58,5 +72,5 @@ Warranty
 ------------------------------------------------------------------------------
 
 This software modifies firmware and hardware configuration on devices you own,
-and can render a device unusable. It is provided WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, per sections 7 and 8 of the License.
+and can render a device unusable. As far as the law allows, it comes as is,
+without any warranty or condition.

@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright 2026 duggasco
 # unlock_all.sh -- run the whole per-boot CMP 100-210 unlock sequence, in the one order that works.
 #

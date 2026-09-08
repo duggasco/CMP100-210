@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright 2026 duggasco
 """Parse the NVGI IFR prefix (the 0xA00 bytes hidden below the NV_PROM aperture). OFFLINE.
 

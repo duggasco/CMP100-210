@@ -1,4 +1,4 @@
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
 <!-- Copyright 2026 duggasco -->
 # CMP 100-210 unlock
 
@@ -367,16 +367,27 @@ porting guide covers how to find out, and section 11 covers what to send back.
 
 ## 8. Licence
 
+**Noncommercial use only.**
+
 | what | licence |
 |---|---|
-| code: `tools/` | [Apache License 2.0](LICENSE) |
-| documentation: this README, the porting guide, `docs/` | [CC BY 4.0](LICENSE-DOCS) |
+| code: `tools/` | [PolyForm Noncommercial 1.0.0](LICENSE) |
+| documentation: this README, the porting guide, `docs/` | [CC BY-NC 4.0](LICENSE-DOCS) |
 
-Attribution notices are in [NOTICE](NOTICE). To reuse the write-up, credit:
+Any noncommercial purpose is permitted, and PolyForm names them explicitly: personal research,
+experiment and testing, hobby projects, and use by educational institutions, public research
+organizations, charities and government institutions regardless of funding. If you want to test
+this on your own card, you are covered.
 
-> CMP 100-210 unlock, duggasco, https://github.com/duggasco/CMP100-210, CC BY 4.0
+Commercial use of either part needs separate permission. To reuse the write-up, credit:
 
-and indicate whether you changed anything.
+> CMP 100-210 unlock, duggasco, https://github.com/duggasco/CMP100-210, CC BY-NC 4.0
+
+and indicate whether you changed anything. Attribution notices are in [NOTICE](NOTICE).
+
+Note what this does and does not reach. It governs copying, distributing and adapting the kit and
+the write-up. It does not govern what you do to your own hardware, and it cannot restrict the
+underlying facts about NVIDIA's firmware, which are not copyrightable.
 
 NVIDIA, CMP, Tesla, Volta and CUDA are trademarks of NVIDIA Corporation, used here only to identify
 the hardware. This project is not affiliated with or endorsed by NVIDIA, and no NVIDIA firmware,

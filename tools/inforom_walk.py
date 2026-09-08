@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright 2026 duggasco
 """Walk a GV100 VBIOS the way FWSECLIC does, and report the InfoROM objects it feeds
 to the unbounded copy at IMEM VA 0x607E.  Host-side, read-only, no hardware.

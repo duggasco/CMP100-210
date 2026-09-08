@@ -1,4 +1,4 @@
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
 <!-- Copyright 2026 duggasco -->
 # Porting the CMP 100-210 unlock to another card, and to another operator
 
@@ -589,6 +589,7 @@ claim.
 
 ---
 
-Documentation licensed [CC BY 4.0](LICENSE-DOCS); the tools it describes are
-[Apache-2.0](LICENSE). Credit as: CMP 100-210 unlock, duggasco,
-https://github.com/duggasco/CMP100-210, CC BY 4.0.
+Noncommercial use only. Documentation licensed [CC BY-NC 4.0](LICENSE-DOCS); the tools it
+describes are [PolyForm Noncommercial 1.0.0](LICENSE). Personal, hobby, research, educational and
+government use are all expressly permitted. Credit as: CMP 100-210 unlock, duggasco,
+https://github.com/duggasco/CMP100-210, CC BY-NC 4.0.
