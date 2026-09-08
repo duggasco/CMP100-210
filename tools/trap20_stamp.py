@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Drive the pass-54 L3 opener: re-aim trap 20 and stamp host-L0 writes to LEVEL_3.
 
 Requires `cand5.rom` resident and an SBR since, so the FWSECLIC chain has armed slot 20 with

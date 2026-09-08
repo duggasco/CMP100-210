@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 duggasco
 // gv100_validate.cu -- numerical validation of the lifted fp64 / tensor-core throttle.
 //
 // A speed number is worthless if the arithmetic is wrong.  Lifting the SM speed-select throttle

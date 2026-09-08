@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Clear the CMP 100-210's CYA speed clamp, then retrain the link from the upstream port.
 
 Background. logs/56 PROVED that one host-L0 write to NV_XVE_PRIV_MISC_1 (0x08841C), clearing the

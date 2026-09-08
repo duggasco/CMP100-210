@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Change the CMP 100-210's HBM memory clock at runtime, properly.
 
 Port of the GA100/170HX memory-clock switch sequence

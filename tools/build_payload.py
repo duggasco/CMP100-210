@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Build a candidate ROM for the FWSECLIC InfoROM overflow. OFFLINE ONLY — never flashes.
 
 Writes a NEW file. Does not touch hardware, does not modify its input. The output is a

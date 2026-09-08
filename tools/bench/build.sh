@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 # build.sh -- compile the five bench binaries, and fail loudly if any does not build.
 #
 # ⚠ Run this EARLY, on the machine that will drive the card. The kit was authored on a host with

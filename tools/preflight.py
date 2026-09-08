@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Is THIS card ready for the unlock kit, and what state is it in right now?  READ-ONLY.
 
 The on-card companion to `tools/rom_compat.py` (which reads a ROM file).  Run this FIRST on any

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 duggasco
 // gpu_hold.cu -- keep every block of the GPU powered and clocked for N seconds.
 //
 // BAR0 register reads taken through a second mapping (sysfs resource0) while RM owns the GPU

@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 # unlock_all.sh -- run the whole per-boot CMP 100-210 unlock sequence, in the one order that works.
 #
 # Everything this does is PER-BOOT and reverted by any device reset.  The only persistent change

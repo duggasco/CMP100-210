@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Read the SPI flash JEDEC id and STATUS REGISTERS over the trap-20 L3 stamp. READ-ONLY ON FLASH.
 
 Supersedes `spi_rdsr_l3.py` / `spi_rdid_l3.py`, both of which looked in the wrong place.

@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 # make_release.sh -- assemble the distributable unlock kit, and REFUSE if it leaks the bench.
 #
 # The working tree is not the package.  `README.md` and `CLAUDE.md` are bench notes: they carry
@@ -24,20 +26,19 @@ cd "$ROOT" || exit 1
 # --- what the package IS -------------------------------------------------------------------
 DOCS="
 PORTING-2026-09-08-other-cards.md
-HANDOFF-2026-09-04-flash-lockout.md
-FINDINGS-2026-09-06-ecc-gate-located.md
-FINDINGS-2026-09-06-video-engines-and-bit-flags.md
-FINDINGS-2026-09-06-integrity-check-scope.md
-FINDINGS-2026-09-05-vbios-write-boundary.md
+LICENSE
+NOTICE
 "
 TOOLS="
 tools/kit_selftest.sh tools/make_release.sh
 tools/rom_compat.py tools/preflight.py tools/build_payload.py
 tools/patch_nvflash_kit.py tools/unlock_all.sh tools/nvflash_pty.py
 tools/pcie_retrain_probe.py tools/hbm_mclk_switch.py tools/fecs_unlock_attempt.py
-tools/trap20_stamp.py tools/spi_flash_l3.py tools/trap_dump.py
+tools/trap20_stamp.py tools/trap_dump.py
+tools/spi_rdid_l3.py tools/spi_status_l3.py tools/spi_write_ifr_l3.py tools/spi_flash_l3.py
 tools/post_state_probe.py tools/inforom_walk.py tools/fwseclic_extract.py
 tools/devinit_diff.py tools/ifr_parse.py tools/ifr_dump.py
+tools/fuc_frames.py tools/falcon_cfg.py tools/falcon_disasm.py
 tools/pcie_state_decode.py tools/hbm_cfg_stability.py
 "
 BENCH="tools/bench/build.sh tools/bench/gv100_pipes.cu tools/bench/gv100_memtest.cu tools/bench/gv100_validate.cu
@@ -54,7 +55,16 @@ firmware/gv100-UNLOCK2-entire-2026-09-06.README
 "
 
 [ "$NO_FIRMWARE" = 1 ] && FIRMWARE=""
-rm -rf "$OUT"; mkdir -p "$OUT/tools/bench" "$OUT/firmware"
+# ⛔ This rm -rf takes a caller-supplied path.  Refuse to delete a git working tree: the
+# published kit is staged in one, and "rebuild the release" must never mean "delete the
+# repository and its history".
+if [ -e "$OUT/.git" ]; then
+  echo "⛔ $OUT contains a .git directory.  Refusing to rm -rf a git working tree."
+  echo "   Stage to a different path, or update the checkout in place."
+  exit 1
+fi
+rm -rf "$OUT"; mkdir -p "$OUT/tools/bench"
+[ -n "$FIRMWARE" ] && mkdir -p "$OUT/firmware"
 miss=0
 for f in $DOCS $TOOLS $BENCH $FIRMWARE; do
   [ -f "$f" ] || { echo "MISSING from the tree: $f"; miss=1; continue; }

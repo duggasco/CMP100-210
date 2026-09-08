@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Falcon frame-size and call-depth calculator for envydis fuc5 listings.
 
 ⛔ **MEASURED WRONG ON SILICON (pass 46): `mpush $rK` pushes K+1 registers

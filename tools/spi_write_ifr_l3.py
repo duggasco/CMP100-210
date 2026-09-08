@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Program the one-byte IFR width edit directly over SPI, via the trap-20 L3 stamp.
 
 nvflash cannot deliver this: flash sector 0 (the IFR) is outside its `0xFF600` extent, behind

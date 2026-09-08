@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Drive an interactive nvflash command under a real controlling terminal.
 
 ⛔ WHY THIS IS REQUIRED, AND WHY THE OBVIOUS THINGS ALL FAIL.

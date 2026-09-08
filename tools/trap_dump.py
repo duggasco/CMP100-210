@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Dump the 22 GV100 PRI decode traps and diff against the pre-exploit stock state.
 
 STRICTLY READ-ONLY (only the PCI COMMAND memory-enable bit is touched, and restored).

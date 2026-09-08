@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Dump the hidden IFR / NVGI prefix that sits BELOW the NV_PROM aperture. READ-ONLY on flash.
 
 Why it is hidden. NV_PMGR_ROM_ADDR_OFFSET (0xE208) reads 0x00000A01 = EN=1, AMOUNT=0x280 dwords,

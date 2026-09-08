@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 duggasco
 // gv100_pipes.cu -- issue-rate and bandwidth microbenchmarks for a Volta GV100.
 //
 // Purpose: the CMP 100-210's devinit writes 0x999 to FECS_FEATURE_OVERRIDE_SM_SPEED_SELECT,

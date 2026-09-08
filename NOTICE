@@ -1,0 +1,52 @@
+CMP 100-210 unlock kit
+Copyright 2026 duggasco
+
+This product includes software developed for reverse-engineering and
+reconfiguring an NVIDIA CMP 100-210 (GV100 / Volta) graphics processor.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use these files except in compliance with the License. You may obtain a copy
+of the License in the LICENSE file distributed with this work, or at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+------------------------------------------------------------------------------
+Prior work this is built on
+------------------------------------------------------------------------------
+
+The techniques implemented here were not all originated by this project:
+
+  * The use of NVIDIA's PRI decode traps as a privilege-escalation primitive
+    (a trap armed with ACTION.SET_PRIV_LEVEL and DATA1 = 0xC0000000 stamping a
+    matching host write to level 3) was discovered by BlackSun on the
+    NVIDIA CMP 170HX. This project ports that mechanism to Volta.
+
+  * The SPI write procedure (driving SPI_CTRL / SPI_DATA_ARRAY directly to
+    issue JEDEC frames, bypassing the vendor flash utility) is zorg33's work,
+    also from the CMP 170HX.
+
+  * The firmware defect the privilege escalation relies on is NVIDIA's own, as
+    is the identifier it was later given in their firmware,
+    NV_PREOS_ERR_INFOROM_BUFFER_OVERFLOW.
+
+------------------------------------------------------------------------------
+Trademarks and affiliation
+------------------------------------------------------------------------------
+
+NVIDIA, CMP, Tesla, Volta and CUDA are trademarks or registered trademarks of
+NVIDIA Corporation. They are used here only to identify the hardware this work
+applies to. Per section 6 of the License, no trademark rights are granted.
+
+This project is not affiliated with, endorsed by, sponsored by or in any way
+connected to NVIDIA Corporation.
+
+No NVIDIA firmware, firmware image, or vendor utility is redistributed in this
+repository.
+
+------------------------------------------------------------------------------
+Warranty
+------------------------------------------------------------------------------
+
+This software modifies firmware and hardware configuration on devices you own,
+and can render a device unusable. It is provided WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, per sections 7 and 8 of the License.

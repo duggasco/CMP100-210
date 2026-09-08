@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 # kit_selftest.sh -- prove the offline half of the unlock kit works, with NO hardware.
 #
 # Run this before touching a card.  It rebuilds both shipped payload images from the shipped

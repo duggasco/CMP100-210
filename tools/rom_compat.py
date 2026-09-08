@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Is THIS card's ROM compatible with the CMP 100-210 unlock kit?  OFFLINE, read-only.
 
 Run this on a dump taken from the target card **before** doing anything to it.  Everything the

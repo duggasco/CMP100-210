@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Turn a STOCK Linux nvflash 5.680 into the binary this kit needs, in one step.  OFFLINE.
 
 The tree grew three separate patchers, each written the day its gate was discovered, and each

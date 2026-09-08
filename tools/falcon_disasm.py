@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Disassemble a falcon image and AUDIT the result. Offline.
 
 ★ THE HAZARD THIS EXISTS TO CATCH IS THE IMAGE BASE, NOT THE DECODER.

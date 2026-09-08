@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Dump the POST-dependent state of a GV100: is devinit done, and what did it program?
 
 Strictly READ-ONLY -- it opens BAR0 O_RDONLY, so a stray write is impossible by construction.

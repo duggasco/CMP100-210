@@ -361,5 +361,20 @@ run on a second card. That the approach generalises is a hypothesis: the FWSECLI
 byte-identical on a stock V100, which points that way, but nothing has tested it. Section 10 of the
 porting guide covers how to find out, and section 11 covers what to send back.
 
-No warranty. This modifies firmware on hardware you own, at your own risk. Nothing here is endorsed
-by or affiliated with NVIDIA.
+---
+
+## 8. Licence
+
+[Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution and the trademark statement.
+
+Apache-2.0 rather than something shorter for two reasons that apply specifically here. Section 3
+is an express patent grant, which is worth having when what is being published is a technique.
+Section 6 grants no trademark rights, which makes formal what the prose already says: NVIDIA, CMP,
+Tesla, Volta and CUDA are NVIDIA Corporation's marks, used here only to identify the hardware this
+applies to, and **this project is not affiliated with, endorsed by or connected to NVIDIA**.
+
+No NVIDIA firmware, firmware image or vendor utility is redistributed here. The tools patch and
+drive a copy of nvflash that you supply.
+
+Sections 7 and 8 disclaim warranty and liability, and they are meant literally. This modifies
+firmware and hardware configuration on devices you own, and it can render one unusable.

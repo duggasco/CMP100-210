@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Locate the SPI frame engine's RECEIVE buffer using RDID (0x9F). READ-ONLY ON THE FLASH.
 
 `spi_rdsr_l3.py` proved the trap-20 L3 stamp can drive `SPI_CTRL`/`SPI_DATA_ARRAY` (`logs/77`) and

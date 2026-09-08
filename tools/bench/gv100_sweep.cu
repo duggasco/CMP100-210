@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 duggasco
 // gv100_sweep.cu -- sensitivity check for gv100_pipes.cu.
 //
 // A pipe measured at 1/16 of architectural rate is only evidence of a throttle if the kernel

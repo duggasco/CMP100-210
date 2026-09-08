@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Decode a GV100's whole PCIe restriction path from an archived register dump. OFFLINE.
 
 Reads either a reg_full_census.py json or a plain "  0xADDR  0xVALUE" text dump (the format of

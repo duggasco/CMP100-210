@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """General SPI flash access on a GV100, through the pass-54 trap-20 L3 stamp.
 
 Generalises `spi_write_ifr_l3.py` (pass 60, which did exactly one 1-byte page program at flash

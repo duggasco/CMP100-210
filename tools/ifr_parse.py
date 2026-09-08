@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Parse the NVGI IFR prefix (the 0xA00 bytes hidden below the NV_PROM aperture). OFFLINE.
 
 Input is the blob from tools/ifr_dump.py. The IFR is the pre-devinit init-from-ROM phase: it runs

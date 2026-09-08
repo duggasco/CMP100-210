@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 duggasco
 """Locate and extract the FWSECLIC falcon ucode from any NVIDIA VBIOS. Host-side, read-only.
 
 Anchors on the ucode's own DMEM constants rather than on the BIT / falcon-ucode-table

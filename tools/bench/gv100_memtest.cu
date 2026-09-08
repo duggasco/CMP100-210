@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 duggasco
 // gv100_memtest.cu -- full-framebuffer integrity test, for validating a memory clock change.
 //
 // Raising the HBM clock is the one change in this tree that can fail SILENTLY: a marginal
