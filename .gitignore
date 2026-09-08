@@ -1,0 +1,11 @@
+# built benchmark binaries and their logs
+tools/bench/bin/
+*.o
+# anything a tester generates locally
+*.rom
+payload*.rom
+baseline*.rom
+readback*.rom
+report-*.json
+report-*.txt
+flash*.txt

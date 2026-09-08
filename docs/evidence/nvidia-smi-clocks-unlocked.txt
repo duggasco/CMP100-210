@@ -1,0 +1,56 @@
+### clocks
+
+==============NVSMI LOG==============
+
+Timestamp                                              : Tue Sep  8 16:10:15 2026
+Driver Version                                         : 580.178.04
+CUDA Version                                           : 13.0
+
+Attached GPUs                                          : 1
+GPU 00000000:01:00.0
+    Clocks
+        Graphics                                       : 1380 MHz
+        SM                                             : 1380 MHz
+        Memory                                         : 877 MHz
+        Video                                          : 1237 MHz
+    Applications Clocks
+        Graphics                                       : 1147 MHz
+        Memory                                         : 810 MHz
+    Default Applications Clocks
+        Graphics                                       : 1147 MHz
+        Memory                                         : 810 MHz
+    Deferred Clocks
+        Memory                                         : N/A
+    Max Clocks
+        Graphics                                       : 1380 MHz
+        SM                                             : 1380 MHz
+        Memory                                         : 810 MHz
+        Video                                          : 1237 MHz
+    Max Customer Boost Clocks
+        Graphics                                       : N/A
+    SM Clock Samples
+        Duration                                       : 177.89 sec
+        Number of Samples                              : 24
+        Max                                            : 1380 MHz
+        Min                                            : 135 MHz
+        Avg                                            : 1329 MHz
+    Memory Clock Samples
+        Duration                                       : 177.89 sec
+        Number of Samples                              : 24
+        Max                                            : 877 MHz
+        Min                                            : 810 MHz
+### supported
+
+==============NVSMI LOG==============
+
+Timestamp                                              : Tue Sep  8 16:10:15 2026
+Driver Version                                         : 580.178.04
+CUDA Version                                           : 13.0
+
+Attached GPUs                                          : 1
+GPU 00000000:01:00.0
+    Supported Clocks
+        Memory                                         : 810 MHz
+            Graphics                                   : 1380 MHz
+            Graphics                                   : 1372 MHz
+            Graphics                                   : 1365 MHz

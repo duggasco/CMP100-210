@@ -1,0 +1,13 @@
+=== A: throttle RESTORED (devinit's value) ===
+  0x409664 <- 0x999   READOUT 0x409660 = 0x00700100
+  FP32 FMA             12.756 TFLOP/s  |  peak  14.131 TFLOP/s @1380MHz  |    90.3% of peak  |   57.8 FMA/SM/clk (arch 64)  |  meas clk 1275.0 MHz
+  FP64 FMA              0.443 TFLOP/s  |  peak   7.066 TFLOP/s @1380MHz  |     6.3% of peak  |    2.0 FMA/SM/clk (arch 32)  |  meas clk 1385.8 MHz
+  TensorCore HMMA       7.097 TFLOP/s  |  peak 113.050 TFLOP/s @1380MHz  |     6.3% of peak  |   32.1 FMA/SM/clk (arch 512)  |  meas clk 1372.9 MHz
+  device read           889.8 GB/s  |  107.3% of theoretical 829.4 GB/s
+
+=== B: throttle LIFTED (same boot, same binary, no reset) ===
+  0x409664 <- 0x888   READOUT 0x409660 = 0x00000100
+  FP32 FMA             12.741 TFLOP/s  |  peak  14.131 TFLOP/s @1380MHz  |    90.2% of peak  |   57.7 FMA/SM/clk (arch 64)  |  meas clk 1273.5 MHz
+  FP64 FMA              6.876 TFLOP/s  |  peak   7.066 TFLOP/s @1380MHz  |    97.3% of peak  |   31.1 FMA/SM/clk (arch 32)  |  meas clk 1348.8 MHz
+  TensorCore HMMA     102.082 TFLOP/s  |  peak 113.050 TFLOP/s @1380MHz  |    90.3% of peak  |  462.3 FMA/SM/clk (arch 512)  |  meas clk 1358.0 MHz
+  device read           889.4 GB/s  |  107.2% of theoretical 829.4 GB/s
