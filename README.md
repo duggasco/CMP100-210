@@ -122,6 +122,13 @@ a check at exactly this site staging `NV_PREOS_ERR_INFOROM_BUFFER_OVERFLOW = 0x2
 part sampled (100-210, 170HX, 90HX) is on the unguarded side, and a stock Tesla V100 ships the
 byte-identical FWSECLIC image, so the guard boundary is a VBIOS branch rather than an architecture.
 
+⚠ **That sample has a selection effect, and it is worth stating plainly.** It could only include
+builds whose code is *readable*. A later Volta branch (`88.00.9D.00.00`, built Jul 2019 against our
+Feb 2018) ships FWSECLIC **AES-encrypted**, and was therefore never in the sample and could not have
+been. So the honest claim is "every readable CMP build sampled is unguarded". NVIDIA may well have
+shipped the guard and the encryption in the same era, which would make the guarded set exactly the
+set nobody can inspect.
+
 ### 2.2a Unguarded is not the same as exploitable
 
 ⛔ **Do not read "unguarded on 170HX and 90HX" as "this works there". It does not, and that was
