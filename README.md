@@ -12,17 +12,23 @@ Validated end to end on hardware. **FP64 15.5×, tensor cores 14.4×, PCIe 3.95�
 
 ## Boards tested
 
-**One.** Everything in this repository was developed and measured on a single card:
+**Ten cards, two SKUs, but only one of them was unlocked.** Be careful to read which is which:
 
-| PCI ID | Board | VBIOS | InfoROM | Result |
-|---|---|---|---|---|
-| `10de:1df4` | CMP 100-210, PG500 SKU 111, board PN `900-1G500-0040-000`, PCB `699-1G500-0111-300` rev A02 | `88.00.51.00.04` | `G001.0000.01.04` | full stack validated, 0 Xids |
+| PCI ID | Board | VBIOS | what was actually done |
+|---|---|---|---|
+| `10de:1df4` | CMP 100-210, PG500 SKU **111**, board PN `900-1G500-0040-000`, PCB `699-1G500-0111-300` rev A02 | `88.00.51.00.04` (built **Feb 23 2018**) | **1 card, full stack unlocked and validated**, 0 Xids. Every number in this README comes from here |
+| `10de:1d84` | CMP 100-210, PG500 SKU **110** | `88.00.9D.00.00` (built **Jul 29 2019**) | **9 cards, read-only only**: `preflight.py` on all nine plus offline `rom_compat.py` on all nine ROMs. **Nothing was written, no unlock was attempted, and none is available as shipped.** See the three findings in §7 |
+
+⚠ The VBIOS declares the PCI device ID, so `1df4` vs `1d84` is a **firmware** distinction, not a
+different die. Our `1df4` card's own `OPT_PCIE_DEVIDA` fuse reads `0x1DB4`, a Tesla V100, and it
+ships a FWSECLIC byte-identical to a stock V100 built the same day. It is re-badged V100 silicon
+restricted purely in devinit. The `1d84` batch is a natively-fused CMP part. **Same name, two
+different products.**
 
 Related parts, none of them tried:
 
 | PCI ID | Part | Expectation |
 |---|---|---|
-| `10de:1d84` | **CMP 100-210, PG500 SKU 110**, VBIOS `88.00.9D.00.00` | ⛔ **the kit does not apply as shipped** (9 cards analysed). Its FWSECLIC secure body is **AES-encrypted** where ours is plaintext, so the exploit is **undetermined there, not refuted** — the code cannot be read. Separately the nerfs *are* **double-locked**: `SM_FMLA/IMLA/DP_SPEED_SELECT` and both PCIe boot fuses are **burned**, where ours read 0. Memory clock still applies; see §7 |
 | `10de:1db4` | Tesla V100-PCIE-16GB (PG503 SKU 201, VBIOS `88.00.4F.00.09`) | ships a **byte-identical FWSECLIC image**, so the chain should apply, but it has none of the restrictions to lift |
 | `10de:20c2` | CMP 170HX (GA100) | ⛔ the primitive itself yields nothing there: PreOS is not heavy-secure on GA100, so the same overflow emits at **UCODE_LEVEL 1**, which no GA100 PLM grants while denying level 0. Tested, see §2.2a. Separately, the fuse block moved to `0x820000` and PLMs are 4-level, so every address here is wrong too |
 | `10de:1e09`, `10de:1ebc` | CMP 50HX (TU102 / Turing) | 4-level PLMs, 32 decode traps, SEC2 at a different base. Not applicable as written, though Turing keeps the pre-Ampere fuse array |
@@ -315,6 +321,28 @@ than a dead end: fit capacitors matching the value of the populated ones on the 
 kit removes the firmware gate and the rework removes the other. That rework has not been performed
 here, so it is reported from board inspection rather than verified.
 
+**The IFR width record is byte-identical across both SKUs.** Verified against nine `1d84` ROMs:
+physical `0x214` holds `42 C0 08 82 FF FF FF 07 00 00 00 08` on their cards and on ours, so the same
+one-byte edit applies unchanged. 647 of 2560 IFR bytes differ between the two SKUs; this record is
+not among them.
+
+**And on a speed-fused card, width is the only PCIe lever left, which inverts its value.** The
+`1d84` batch has `OPT_PCIE_BOOT_GEN23_DISABLE` and `GEN3_DISABLE` burned, so Gen3 is permanently
+closed to it. But `OPT_PCIE_LANE_DISABLE` reads `0` there, exactly as on ours, so width is not fused
+on either. At the 80% of line rate we measured:
+
+| | theoretical | measured-equivalent |
+|---|---|---|
+| Gen1 x1, stock | 0.25 GB/s | 0.20 |
+| Gen3 x1, what we achieved | 0.98 | **0.79** |
+| Gen1 x16, if width won | 4.00 | **3.20** |
+
+So on a fuse-locked card, winning width would be worth **four times** what winning speed was worth
+to us. ⛔ Delivery is the obstacle: nvflash refuses every write below physical `0x00EE00`, and our
+route was the L3 SPI stamp, which needs the payload resident. On a card whose FWSECLIC is encrypted
+there is no stamp, so the edit is **external-programmer-only** there, at 1.8 V, with no in-band
+recovery.
+
 > `XP_PL_LANE_PRESENT` is not predictive. It reads `0xFFFF`, 16 lanes present at the PHY, on a card
 > that trains x1. Inspect the board instead, looking for empty pad pairs on the lane traces near
 > the edge connector alongside the populated ones on the working lane.
@@ -417,7 +445,7 @@ all of which the tooling caught rather than assumed:
 
 * **An encrypted FWSECLIC.** Their secure body measures **7.99 bits/byte** against our **6.81**,
   with 50 repeated AES blocks and 41% of it undecodable, while their NS bootloader disassembles
-  cleanly at 0%. Ours is plaintext; theirs is not. `build_payload.py` refuses, correctly — but the
+  cleanly at 0%. Ours is plaintext; theirs is not. `build_payload.py` refuses, correctly, but the
   honest reading is that the exploit is **undetermined** on that branch rather than absent, because
   the code cannot be read at all. Their DMEM *is* readable and still carries the InfoROM format
   strings, and their FWSECLIC is still heavy-secure, so both the privilege and the parser family
