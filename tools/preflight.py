@@ -187,6 +187,13 @@ def main():
         "lnkcap_width": (r["XVE_LINK_CAP"] >> 4) & 0x3F,
         "link_specifier": (r["XP_PL_LINK_CONFIG_0"] >> 27) & 0x1F,
         "hbm_ndivs": ndivs,
+        # ★ Added after the first second-card data (9x 10de:1d84, VBIOS 88.00.9D.00.00, 2026-09-08).
+        # That SKU is DOUBLE-LOCKED where the reference card is not: the throttle and the PCIe cap
+        # are burned in OTP *as well as* applied by devinit.  A verdict that ignores the fuse half
+        # is a false GO, and on that batch it was one.
+        "speed_select_fused": bool(f["OPT_SM_FMLA_SPEED_SELECT"] or f["OPT_SM_IMLA_SPEED_SELECT"]
+                                   or f["OPT_DP_SPEED_SELECT"]),
+        "pcie_gen_fused": bool(f["OPT_PCIE_BOOT_GEN23_DISABLE"] or f["OPT_PCIE_BOOT_GEN3_DISABLE"]),
     }
     d = o["derived"]
 
@@ -215,9 +222,17 @@ def main():
                 if posted else "the card has not POSTed; the FB block is dark.  Load the driver "
                                "first -- COEFF is only meaningful after devinit.",
     }
+    gen3_fuse_blocker = ([
+        "⛔ PCIe Gen2/Gen3 ARE FUSED OFF ON THIS CARD: OPT_PCIE_BOOT_GEN23_DISABLE=%d, "
+        "OPT_PCIE_BOOT_GEN3_DISABLE=%d.  The reference card reads 0/0 and is capped by the CYA "
+        "bits alone, which is why clearing them works there.  This is the 170HX double-lock "
+        "pattern, and the 170HX survey records that a firmware-only patch is INSUFFICIENT when "
+        "the fuse half is present.  Clearing CYA here is expected to do nothing."
+        % (f["OPT_PCIE_BOOT_GEN23_DISABLE"], f["OPT_PCIE_BOOT_GEN3_DISABLE"])]
+        if d["pcie_gen_fused"] else [])
     v["pcie_gen3"] = {
-        "go": not posted and d["cya_clamped"],
-        "blockers": (["the card has already POSTed (PMC_ENABLE 0x%08X).  The CYA clear is a "
+        "go": not posted and d["cya_clamped"] and not d["pcie_gen_fused"],
+        "blockers": gen3_fuse_blocker + (["the card has already POSTed (PMC_ENABLE 0x%08X).  The CYA clear is a "
                       "PRE-POST-only lever -- the capability is latched at devinit.  Reset and "
                       "run before anything opens the GPU." % r["PMC_ENABLE"]] if posted else []) +
                     ([] if d["cya_clamped"] else
@@ -235,11 +250,21 @@ def main():
         "note": "trap 20 %s, FECS PLM %s" % ("ARMED" if d["trap20_armed"] else "not armed",
                                              "OPEN" if d["fecs_plm_open"] else "closed"),
     }
-    v["fp64_tensor"] = {
-        "go": d["fecs_plm_open"] or d["trap20_armed"],
-        "blockers": ([] if (d["fecs_plm_open"] or d["trap20_armed"]) else
+    fp64_blockers = ([] if (d["fecs_plm_open"] or d["trap20_armed"]) else
                      ["FECS PLM 0x409650 = 0x%02X (write-L3-only) and no opener is armed"
-                      % r["FECS_PLM"]]),
+                      % r["FECS_PLM"]])
+    if d["speed_select_fused"]:
+        fp64_blockers.append(
+            "⛔ THE THROTTLE IS BURNED IN OTP ON THIS CARD, not just applied by devinit: "
+            "OPT_SM_FMLA_SPEED_SELECT=%d OPT_SM_IMLA_SPEED_SELECT=%d OPT_DP_SPEED_SELECT=%d.  "
+            "The reference card reads 0/0/0 and is throttled by devinit alone, which is why one "
+            "L3 write of 0x888 lifts it there.  Whether FEATURE_OVERRIDE beats a burned fuse is "
+            "UNTESTED -- it is an override register, so it may, but nothing here has measured it.  "
+            "Treat a fused card as unproven, not as a known win."
+            % (f["OPT_SM_FMLA_SPEED_SELECT"], f["OPT_SM_IMLA_SPEED_SELECT"], f["OPT_DP_SPEED_SELECT"]))
+    v["fp64_tensor"] = {
+        "go": (d["fecs_plm_open"] or d["trap20_armed"]) and not d["speed_select_fused"],
+        "blockers": fp64_blockers,
         "note": "OVERRIDE 0x409664 = 0x%08X, READOUT 0x409660 = 0x%08X (bits 20/21/22 "
                 "DP/IMLA/FMLA; 0 = FULL_SPEED)" % (r["FECS_OVERRIDE"], r["FECS_READOUT"]),
     }

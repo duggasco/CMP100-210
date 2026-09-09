@@ -524,7 +524,8 @@ This is the interesting part, and the reason to write any of this down.
 | a gadget VA does not match | different FWSECLIC build | **stop.** The chain is a jump to an arbitrary address at L3. Re-derive, do not force |
 | ULF declared size ≠ 1120 | different InfoROM object layout | check the headroom in `tools/inforom_walk.py`; the copy must still overflow into the frame |
 | InfoROM directory at a different address | **expected and handled** | nothing — this is why it is derived |
-| a `SPEED_SELECT` fuse is burned | throttled in OTP, not devinit | this kit cannot lift it. That is the 170HX's mechanism, not this one |
+| a `SPEED_SELECT` fuse is burned | throttled in OTP, not devinit | ★ **observed on 9 real cards** (`10de:1d84`). Our `0x888` result was measured with those fuses clear and does not transfer. `FEATURE_OVERRIDE` may still beat a burned fuse, since that is what an override register is for, but nobody has measured it |
+| `OPT_PCIE_BOOT_GEN23_DISABLE` or `GEN3_DISABLE` is burned | Gen1 is double-locked | ★ **observed on the same 9 cards.** Clearing CYA is expected to do nothing; the 170HX survey records a firmware-only patch is insufficient when the fuse half is present |
 | `arch != 0x140` | not Volta | every address here is wrong. See `~/170hx_unlock` for GA100 |
 | CYA bits already clear | the Gen1 cap is fused, not CYA | the Gen3 write will do nothing |
 | the `0x409664` record has a value other than `0x999` | a different throttle configuration | measure before and after; do not assume the 15.5× number transfers |
