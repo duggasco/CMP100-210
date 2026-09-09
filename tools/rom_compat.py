@@ -128,6 +128,27 @@ def check_identity(rom, out):
     out["sha256"] = hashlib.sha256(rom.d).hexdigest()
 
 
+def body_entropy(imem, sec_base):
+    """Shannon entropy of the SECURE BODY only.
+
+    Added 2026-09-08 after this tool gave a right answer for a wrong reason on the first external
+    card.  A GV100 FWSECLIC body may be plaintext (our 88.00.51.00.04 branch, ~6.8 bits/byte) or
+    AES-encrypted (the 88.00.9D.00.00 branch, ~7.99).  Comparing our plaintext gadget bytes against
+    someone else's ciphertext yields 8/8 "mismatches" that say nothing about whether the bug is
+    present.  Measure first, then decide what a signature comparison can even mean.
+    """
+    import collections, math
+    b = imem[sec_base:]
+    if not b:
+        return 0.0
+    c = collections.Counter(b)
+    n = len(b)
+    return -sum(v / n * math.log2(v / n) for v in c.values())
+
+
+ENCRYPTED_ENTROPY = 7.5      # plaintext falcon code ~6.8; AES-ECB ~7.99
+
+
 def check_fwseclic(rom, out):
     hits = fx.scan(rom.path)
     if not hits:
@@ -145,7 +166,10 @@ def check_fwseclic(rom, out):
     for va, (want, pop, name, links) in sorted(RESUME_GADGETS.items()):
         resumes["0x%04X" % va] = im[va:va + len(want) // 2].hex() == want
     canary = struct.unpack_from("<I", c["dmem"], CANARY_DMEM)[0] if len(c["dmem"]) > CANARY_DMEM + 4 else None
+    ent = body_entropy(im, c["imem_sbase"])
+    encrypted = ent >= ENCRYPTED_ENTROPY
     out["fwseclic"] = {
+        "body_entropy": round(ent, 2), "encrypted": encrypted,
         "found": True, "desc_ver": c["desc_ver"], "file_base": c["base"],
         "imem_len": c["imem_load"], "dmem_len": c["dmem_load"],
         "imem_sha16": sha[:16], "imem_sha256": sha,
@@ -252,17 +276,28 @@ def verdicts(out):
     if not f.get("found"):
         l3_reasons.append("no FWSECLIC ucode found in this image")
     else:
-        if not f["matches_reference_build"]:
+        if f["encrypted"]:
+            l3_reasons.append(
+                "THIS FWSECLIC SECURE BODY IS ENCRYPTED (entropy %.2f bits/byte; plaintext "
+                "measures ~6.8, AES ~7.99).  The reference branch 88.00.51.00.04 ships PLAINTEXT; "
+                "this one does not.  ==> COMPATIBILITY IS UNDETERMINED, NOT REFUTED.  Every gadget "
+                "and canary comparison is our plaintext against this ciphertext and is MEANINGLESS "
+                "-- it cannot say whether the bug is present, only that the code cannot be read.  "
+                "The NS bootloader is still plaintext and the DMEM, including the InfoROM format "
+                "strings, is readable; only the code body is sealed.  Do not build a payload, and "
+                "do not record this as 'the exploit does not port'." % f["body_entropy"])
+        elif not f["matches_reference_build"]:
             l3_reasons.append("FWSECLIC build differs from the reference (%s vs %s)"
                               % (f["imem_sha16"], REF_IMEM_SHA))
-        if f["gadget_mismatches"]:
-            l3_reasons.append("%d gadget signature(s) do not match: %s"
-                              % (len(f["gadget_mismatches"]), ", ".join(f["gadget_mismatches"])))
-        if not f["canary_ok"]:
-            l3_reasons.append("stack canary constant D[0x1B0] is 0x%08X, expected 0x%08X"
-                              % (f["canary_dmem_0x1B0"] or 0, CANARY_VALUE))
-        if not f["resume_gadgets_present"].get("0x%04X" % KIT_RESUME):
-            l3_reasons.append("the 5-link resume gadget 0x%04X is absent" % KIT_RESUME)
+        if not f["encrypted"]:
+            if f["gadget_mismatches"]:
+                l3_reasons.append("%d gadget signature(s) do not match: %s"
+                                  % (len(f["gadget_mismatches"]), ", ".join(f["gadget_mismatches"])))
+            if not f["canary_ok"]:
+                l3_reasons.append("stack canary constant D[0x1B0] is 0x%08X, expected 0x%08X"
+                                  % (f["canary_dmem_0x1B0"] or 0, CANARY_VALUE))
+            if not f["resume_gadgets_present"].get("0x%04X" % KIT_RESUME):
+                l3_reasons.append("the 5-link resume gadget 0x%04X is absent" % KIT_RESUME)
     if not ulf:
         l3_reasons.append("the InfoROM ULF object could not be located")
     elif ulf["declared_size"] != 1120:
@@ -323,6 +358,9 @@ def report(out, rom):
     else:
         p("  descriptor      %s at file 0x%06X, IMEM 0x%05X, DMEM 0x%05X"
           % (f["desc_ver"], f["file_base"], f["imem_len"], f["dmem_len"]))
+        p("  secure body     entropy %.2f bits/byte   %s" % (f["body_entropy"],
+          "ENCRYPTED -- code unreadable, compatibility UNDETERMINED" if f["encrypted"]
+          else "plaintext, readable"))
         p("  IMEM sha256     %s...  %s" % (f["imem_sha16"],
           "★ MATCHES the reference build" if f["matches_reference_build"] else "⛔ DIFFERENT BUILD"))
         p("  canary D[0x1B0] 0x%08X  %s" % (f["canary_dmem_0x1B0"] or 0,

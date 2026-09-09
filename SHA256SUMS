@@ -3,7 +3,7 @@ ea65addb7aec725f333991e2df378242cb87b72559e7082b57cf5aed9752f858  ./LICENSE
 41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0  ./LICENSE-DOCS
 5f702e8e13229788738e41495514cb2cd1c793f16a613667bd9daa1128558bad  ./NOTICE
 4aa25db1bb1d04e4da6e27e5468137fb8aca364c3542f67243f439afb587d5ae  ./PORTING-2026-09-08-other-cards.md
-834abe0d2de9b1a6f64a8aa3d5316da51f6df4c65ec0eda9c5e5d07ebcca44b9  ./README.md
+3d2aedf17d81c6ec2541ab9a8a4f370cfaa8d91a1cb1ba1422797adf4b3f7ca9  ./README.md
 b29a2d4dff8893f98c6fb8797aa3b2c7f793c137895f3dd4088bb84d4d4d19f4  ./docs/evidence/nvidia-smi-clocks-unlocked.txt
 f56aad7d8b410d946151d6aa1233a408425c7e26384f15274d4035831bb526ae  ./docs/evidence/nvidia-smi-unlocked.txt
 c9e93f3602ddc21a0462db0f9d47898d2cc9107542e0abcb609f05dfa1cb83e7  ./docs/evidence/throttle-live-toggle-ab.txt
@@ -36,7 +36,7 @@ fd42d2306adaecaff13ca6f6dab7980aaaa89795fb5b6352c1f14ee1f6835bb6  ./tools/make_r
 9f0830fd0e7456a8784e35724e5bdf599e1050e641615e6ffc0cc3cc14bb4821  ./tools/pcie_state_decode.py
 5fb85236b2620d8c8c3d03968007500eddb67b180597f82ae680a05aff5c7802  ./tools/post_state_probe.py
 48efe15a3d55224a034d3a8a7ca028a94a404b8ff9d8a392bad053d9690124bd  ./tools/preflight.py
-dce7951686fb87ab3d6322db6cd777cb41f6b97f2044d92c0d31553a6b842acc  ./tools/rom_compat.py
+c0d951e0f480ce83c67fbdd5d8f03816db5b38e4a936b377419eb79167343cac  ./tools/rom_compat.py
 93d22fa619945aaeb1f178e7c628289f9ed71788d1d4eefe3b37c2c73e57d9ae  ./tools/spi_flash_l3.py
 5159e5627ed59d7a7579f84d476822926d312aba37e5b00a80db03b49d3a2bc5  ./tools/spi_rdid_l3.py
 49724322fe0a4347b49ca8567e5a9a79b87cfa1179fd4210e58ab4fa0acbe243  ./tools/spi_status_l3.py

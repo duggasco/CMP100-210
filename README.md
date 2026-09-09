@@ -22,7 +22,7 @@ Related parts, none of them tried:
 
 | PCI ID | Part | Expectation |
 |---|---|---|
-| `10de:1d84` | **CMP 100-210, PG500 SKU 110**, VBIOS `88.00.9D.00.00` | ⛔ **tested on 9 cards: the exploit does NOT reach this SKU.** Different FWSECLIC build (IMEM sha `c353670d…`), all 8 gadget signatures absent, canary `0x2E1B2138`. And the nerfs are **double-locked**: `SM_FMLA/IMLA/DP_SPEED_SELECT` and both PCIe boot fuses are **burned**, where ours read 0. Memory clock still applies; see §7 |
+| `10de:1d84` | **CMP 100-210, PG500 SKU 110**, VBIOS `88.00.9D.00.00` | ⛔ **the kit does not apply as shipped** (9 cards analysed). Its FWSECLIC secure body is **AES-encrypted** where ours is plaintext, so the exploit is **undetermined there, not refuted** — the code cannot be read. Separately the nerfs *are* **double-locked**: `SM_FMLA/IMLA/DP_SPEED_SELECT` and both PCIe boot fuses are **burned**, where ours read 0. Memory clock still applies; see §7 |
 | `10de:1db4` | Tesla V100-PCIE-16GB (PG503 SKU 201, VBIOS `88.00.4F.00.09`) | ships a **byte-identical FWSECLIC image**, so the chain should apply, but it has none of the restrictions to lift |
 | `10de:20c2` | CMP 170HX (GA100) | ⛔ the primitive itself yields nothing there: PreOS is not heavy-secure on GA100, so the same overflow emits at **UCODE_LEVEL 1**, which no GA100 PLM grants while denying level 0. Tested, see §2.2a. Separately, the fuse block moved to `0x820000` and PLMs are 4-level, so every address here is wrong too |
 | `10de:1e09`, `10de:1ebc` | CMP 50HX (TU102 / Turing) | 4-level PLMs, 32 decode traps, SEC2 at a different base. Not applicable as written, though Turing keeps the pre-Ampere fuse array |
@@ -408,10 +408,13 @@ Developed and validated on exactly one CMP 100-210, as the table at the top says
 (PG500 SKU 110, VBIOS `88.00.9D.00.00`) were preflighted and their ROMs analysed. Three findings,
 all of which the tooling caught rather than assumed:
 
-* **A different FWSECLIC build.** IMEM sha `c353670d…` against our `96c62051…`, all eight gadget
-  signatures absent, stack canary `0x2E1B2138` rather than `0x00006BD1`, none of the six resume
-  gadgets present. `build_payload.py` refuses, correctly: a payload built anyway would have been a
-  jump to an arbitrary address at level 3.
+* **An encrypted FWSECLIC.** Their secure body measures **7.99 bits/byte** against our **6.81**,
+  with 50 repeated AES blocks and 41% of it undecodable, while their NS bootloader disassembles
+  cleanly at 0%. Ours is plaintext; theirs is not. `build_payload.py` refuses, correctly — but the
+  honest reading is that the exploit is **undetermined** on that branch rather than absent, because
+  the code cannot be read at all. Their DMEM *is* readable and still carries the InfoROM format
+  strings, and their FWSECLIC is still heavy-secure, so both the privilege and the parser family
+  are present. Only the code body is sealed, under a key the public debug key does not open.
 * **The restrictions are fused there, not just applied by devinit.** `SM_FMLA/IMLA/DP_SPEED_SELECT`
   all read 1 and both PCIe boot-disable fuses read 1, where our card reads 0 across the board. Our
   card is a re-badged Tesla V100 (`OPT_PCIE_DEVIDA = 0x1DB4`) capped in firmware; that batch is
@@ -421,7 +424,8 @@ all of which the tooling caught rather than assumed:
   is what makes the tooling safe to point at an unfamiliar card.
 
 So the honest scope is narrower than "CMP 100-210": this works on cards whose restrictions live in
-devinit and whose FWSECLIC matches. Section 10 of the porting guide is how you find out which kind
+devinit and whose FWSECLIC is both plaintext and the matching build. On a branch that ships an
+encrypted FWSECLIC, offline analysis cannot answer the question either way. Section 10 of the porting guide is how you find out which kind
 you have, and section 11 is what to send back.
 
 ---
